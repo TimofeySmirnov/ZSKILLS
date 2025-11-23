@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URI")
+}
+
+enum LESSON_TYPES {
+  lecture
+  test
+  webinar
+}
+
+enum TEST_TYPES {
+  single
+  multiple
+}
+
+model User {
+  id                    String                @id @default(uuid())
+  firstName             String                @map("first_name")
+  lastName              String                @map("last_name")
+  email                 String                @unique
+  phoneNumber           String                @unique
+  password              String
+  Subscription          Subscription?
+  subscriptionHistoryId String?
+  SubscriptionHistory   SubscriptionHistory[]
+  course                Course[]
+
+  @@map("users")
+}
+
+model TariffPlan {
+  id                  String                @id @default(uuid())
+  name                String                @unique
+  price               Float
+  duration            Int                   @default(30)
+  maxCourses          Int                   @map("max_courses")
+  Subscription        Subscription[]
+  SubscriptionHistory SubscriptionHistory[]
+
+  @@map("tariff_plans")
+}
+
+model Subscription {
+  id          String     @id @default(uuid())
+  userId      String     @unique @map("user_id")
+  user        User       @relation(fields: [userId], references: [id])
+  tarifPlanId String     @map("tarif_plan_id")
+  tarifPlan   TariffPlan @relation(fields: [tarifPlanId], references: [id])
+  createdAt   DateTime   @default(now()) @map("created_at")
+  dateEnd     DateTime   @map("date_end")
+  isActive    Boolean    @default(false) @map("is_active")
+}
+
+model SubscriptionHistory {
+  id          String     @id @default(uuid())
+  dateStart   DateTime
+  dateEnd     DateTime
+  tarifPlanId String
+  tarifPlan   TariffPlan @relation(fields: [tarifPlanId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String
+  prise       Float
+  paymentId   String?
+}
+
+model Course {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  preview     String?
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  courseUnits CourseUnit[]
+
+  @@map("courses")
+}
+
+model CourseUnit {
+  id          String   @id @default(uuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  name        String
+  description String?
+  orderIndex  Int      @default(1)
+  lessons     Lesson[]
+
+  @@map("units")
+}
+
+model Lesson {
+  id           String         @id @default(uuid())
+  name         String
+  lessonType   LESSON_TYPES   @default(lecture) @map("lesson_type")
+  test         LessonTest?
+  webinar      LessonWebinar?
+  content      Json?
+  courseUnitId String
+  courseUnit   CourseUnit     @relation(fields: [courseUnitId], references: [id])
+  orderIndex   Int            @default(1)
+}
+
+model LessonWebinar {
+  id          String  @id() @default(uuid())
+  lessonId    String  @unique()
+  link        String
+  connectTime String
+  description String?
+  lesson      Lesson  @relation(fields: [lessonId], references: [id])
+}
+
+model LessonTest {
+  id        String         @id @default(ulid())
+  lessonId  String         @unique
+  lesson    Lesson         @relation(fields: [lessonId], references: [id])
+  questions TestQuestion[]
+}
+
+model TestQuestion {
+  id         String     @id @default(uuid())
+  question   String
+  type       TEST_TYPES @default(single)
+  answers    Json
+  testId     String
+  test       LessonTest @relation(fields: [testId], references: [id])
+  orderIndex Int        @default(1)
+}

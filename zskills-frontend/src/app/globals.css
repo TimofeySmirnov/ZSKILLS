@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-prompt: var(--font-prompt-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: white;
+  color: black;
+  font-family: var(--font-prompt), Helvetica, sans-serif;
+  font-size: medium;
+  width: 100vw;
+  height: 100vh;
+}
+
+html, body { overflow-x: clip; }
+
+#editorjs .ce-block__content,
+#editorjs .ce-toolbar__content {
+  max-width: 100% !important;
+}
+
+#editorjs .ce-block {
+  max-width: 100% !important;
+}
